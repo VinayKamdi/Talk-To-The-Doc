@@ -6,14 +6,19 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains import create_retrieval_chain
+from langchain.docstore.document import Document as LangchainDocument
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from pdf2image import convert_from_path
+from pytesseract import image_to_string
+from docx import Document
+from PIL import Image
+import magic
 
 load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-
 
 st.title("Talk to the Doc.")
 
@@ -29,19 +34,54 @@ prompt = ChatPromptTemplate.from_template(
     """
 )
 
+def extract_text_from_doc(file_path):
+    doc = Document(file_path)
+    text = '\n'.join([para.text for para in doc.paragraphs])
+    return text
+
+def extract_text_from_image(image_path):
+    image = Image.open(image_path)
+    text = image_to_string(image)
+    return text
+
+def extract_text_from_pdf_images(pdf_path):
+    images = convert_from_path(pdf_path)
+    text = ''
+    for image in images:
+        text += image_to_string(image)
+    return text
+
 def vector_embedding(files):
     if "vectors" not in st.session_state:
-        temp_dir = "./temp_pdfs"
+        temp_dir = "./temp_files"
         os.makedirs(temp_dir, exist_ok=True)
 
         documents = []
         for file in files:
+            file_type = magic.from_buffer(file.read(1024), mime=True)
+            file.seek(0)
+
             file_path = os.path.join(temp_dir, file.name)
             with open(file_path, "wb") as f:
                 f.write(file.getbuffer())
 
-            loader = PyPDFLoader(file_path)
-            documents.extend(loader.load())
+            if file_type == "application/pdf":
+                loader = PyPDFLoader(file_path)
+                documents.extend(loader.load())
+
+                image_text = extract_text_from_pdf_images(file_path)
+                documents.append(LangchainDocument(page_content=image_text))
+
+            elif file_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+                doc_text = extract_text_from_doc(file_path)
+                documents.append(LangchainDocument(page_content=doc_text))
+
+            elif "image" in file_type:
+                image_text = extract_text_from_image(file_path)
+                documents.append(LangchainDocument(page_content=image_text))
+
+            else:
+                st.warning(f"Unsupported file format: {file_type}")
 
         st.session_state.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001") # type: ignore
         st.session_state.text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
@@ -52,7 +92,7 @@ def vector_embedding(files):
             os.remove(os.path.join(temp_dir, file.name))
         os.rmdir(temp_dir)
 
-uploaded_files = st.file_uploader("Upload PDF documents", type="pdf", accept_multiple_files=True)
+uploaded_files = st.file_uploader("Upload documents (PDF, DOCX, Images)", type=["pdf", "docx", "jpg", "jpeg", "png"], accept_multiple_files=True)
 if uploaded_files:
     vector_embedding(uploaded_files)
     prompt1 = st.text_input("Ask questions.")
