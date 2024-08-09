@@ -1,11 +1,12 @@
 # Talk to the Doc
 
-**Talk to the Doc** is an interactive web application that allows users to upload PDF documents and ask questions about their content. The application leverages the power of language models to provide accurate responses based on the provided documents. It uses LangChain, FAISS, and Google Generative AI for document processing and retrieval.
+**Talk to the Doc** is an interactive web application that allows users to upload PDF documents, Word documents, and images to ask questions about their content. The application leverages advanced language models to provide accurate responses based on the provided documents. It uses LangChain, FAISS, and Google Generative AI for document processing and retrieval.
 
 ## Features
 
-- **PDF Upload**: Upload multiple PDF documents for analysis.
+- **Multi-format Upload**: Upload multiple PDF, DOCX, and image files for analysis.
 - **Document Embedding**: Convert documents into vector embeddings for efficient retrieval.
+- **Text Extraction**: Extract text from PDF, DOCX, and image files, including PDFs that consist of images.
 - **Question Answering**: Ask questions about the document content and receive accurate responses.
 - **Language Models**: Utilizes advanced language models for natural language understanding and generation.
 
@@ -38,12 +39,12 @@
 
 1. Run the Streamlit application:
     ```bash
-    streamlit run app.py
+    streamlit run talk_to_the_doc.py
     ```
 
 2. Open your web browser and go to `http://localhost:8501`.
 
-3. Upload your PDF documents using the file uploader.
+3. Upload your documents (PDF, DOCX, or images) using the file uploader.
 
 4. Once the documents are uploaded, enter your questions in the provided text input box.
 
@@ -53,16 +54,18 @@
 
 ### Main Components
 
-- **PDF Upload**: Allows users to upload multiple PDF files.
+- **File Upload**: Allows users to upload multiple PDF, DOCX, and image files.
+- **Text Extraction**: Extracts text from various formats, including OCR for image-based PDFs and other image files.
 - **Vector Embedding**: Converts uploaded documents into vector embeddings using `GoogleGenerativeAIEmbeddings` and `FAISS`.
 - **Question Answering**: Utilizes `ChatGroq` for generating responses based on the context extracted from documents.
 - **Document Splitting**: Uses `RecursiveCharacterTextSplitter` to handle large documents by splitting them into manageable chunks.
 
 ### Key Functions
 
-- `vector_embedding(files)`: Handles the conversion of uploaded PDF documents into vector embeddings.
-- File Upload Handler: Manages the file uploading process and triggers the embedding function.
-- Query Handling: Processes user questions and retrieves the most relevant answers from the document content.
+- `extract_text_from_doc(file_path)`: Extracts text from DOCX files.
+- `extract_text_from_image(image_path)`: Extracts text from image files using OCR.
+- `extract_text_from_pdf_images(pdf_path)`: Converts each page of a PDF into an image and extracts text using OCR.
+- `vector_embedding(files)`: Handles the conversion of uploaded documents into vector embeddings.
 
 ## Dependencies
 
@@ -75,6 +78,11 @@
 - `langchain_google_genai`
 - `faiss-cpu`
 - `python-dotenv`
+- `pdf2image`
+- `pytesseract`
+- `python-docx`
+- `Pillow`
+- `python-magic`
 
 ## License
 
