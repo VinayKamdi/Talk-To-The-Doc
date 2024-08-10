@@ -45,7 +45,7 @@ def extract_text_from_image(image_path):
     return text
 
 def extract_text_from_pdf_images(pdf_path):
-    images = convert_from_path(pdf_path)
+    images = convert_from_path( pdf_path, poppler_path='poppler-24.07.0/Library/bin')
     text = ''
     for image in images:
         text += image_to_string(image)
