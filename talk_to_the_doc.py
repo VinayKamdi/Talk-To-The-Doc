@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import shutil
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -90,7 +91,8 @@ def vector_embedding(files):
 
         for file in files:
             os.remove(os.path.join(temp_dir, file.name))
-        os.rmdir(temp_dir)
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
 
 uploaded_files = st.file_uploader("Upload documents (PDF, DOCX, Images)", type=["pdf", "docx", "jpg", "jpeg", "png"], accept_multiple_files=True)
 if uploaded_files:
