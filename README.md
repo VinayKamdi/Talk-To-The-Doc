@@ -2,6 +2,9 @@
 
 **Talk to the Doc** is an interactive web application that allows users to upload PDF documents, Word documents, and images to ask questions about their content. The application leverages advanced language models to provide accurate responses based on the provided documents. It uses LangChain, FAISS, and Google Generative AI for document processing and retrieval.
 
+## Demo Link
+https://talk-to-the-doc.streamlit.app/
+
 ## Features
 
 - **Multi-format Upload**: Upload multiple PDF, DOCX, and image files for analysis.
